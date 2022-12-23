@@ -7,7 +7,7 @@ use anchor_lang::{prelude::*, solana_program};
 use events::*;
 use state::*;
 
-declare_id!("4GUuiefBoY1Qeou69d2bM2mQTEgr8wBFes3KqZaFXZzn");
+declare_id!("3m3Hd3kB2GLrUvvQ8AhCgVj34XYDcMgQPUxAHbrMLz13");
 
 #[program]
 pub mod multisig {

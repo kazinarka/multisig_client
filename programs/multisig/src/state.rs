@@ -108,6 +108,16 @@ impl From<&TxInstruction> for Instruction {
     }
 }
 
+impl From<&Instruction> for TxInstruction {
+    fn from(tx: &Instruction) -> TxInstruction {
+        TxInstruction {
+            program_id: tx.program_id,
+            keys: tx.accounts.clone().into_iter().map(Into::into).collect(),
+            data: tx.data.clone(),
+        }
+    }
+}
+
 impl From<TxAccountMeta> for AccountMeta {
     fn from(
         TxAccountMeta {
@@ -117,6 +127,22 @@ impl From<TxAccountMeta> for AccountMeta {
         }: TxAccountMeta,
     ) -> AccountMeta {
         AccountMeta {
+            pubkey,
+            is_signer,
+            is_writable,
+        }
+    }
+}
+
+impl From<AccountMeta> for TxAccountMeta {
+    fn from(
+        AccountMeta {
+            pubkey,
+            is_signer,
+            is_writable,
+        }: AccountMeta,
+    ) -> TxAccountMeta {
+        TxAccountMeta {
             pubkey,
             is_signer,
             is_writable,
