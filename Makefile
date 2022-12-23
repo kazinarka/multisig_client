@@ -18,4 +18,7 @@ deploy:
 	sh deploy.sh
 
 approve:
-	cargo run -- approve -e dev -s /Users/illiafedotov/.config/solana/id.json -m 4kMtMnYWFbsMc7M3jcdnfCceHaiXmrqaMz2QZQAmn88i -i 1
+	cargo run -- approve -e dev -s /Users/illiafedotov/.config/solana/id.json -m 8on7RnsMroPF79UMdb9VH9tX6KMaSDDFfGZqwr48y5n4 -i 1
+
+create_multisig:
+	cargo run -- create_multisig -e dev -s /Users/illiafedotov/.config/solana/id.json -b 4kMtMnYWFbsMc7M3jcdnfCceHaiXmrqaMz2QZQAmn88i -o 4kMtMnYWFbsMc7M3jcdnfCceHaiXmrqaMz2QZQAmn88i -t 1

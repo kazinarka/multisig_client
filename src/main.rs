@@ -2,14 +2,13 @@ mod consts;
 mod structs;
 mod transactions;
 
-use borsh::{BorshDeserialize, BorshSchema, BorshSerialize};
 use clap::{
     app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg, SubCommand,
 };
 
 use crate::transactions::approve::approve;
-
-use multisig;
+use crate::transactions::create_multisig::create_multisig;
+use crate::transactions::create_transaction::create_transaction;
 
 fn main() {
     let matches = app_from_crate!()
@@ -41,7 +40,8 @@ fn main() {
                         .short("o")
                         .long("owners")
                         .required(false)
-                        .takes_value(true),
+                        .takes_value(true)
+                        .multiple(true),
                 )
                 .arg(
                     Arg::with_name("threshold")
@@ -123,11 +123,11 @@ fn main() {
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("create_multisig") {
-
+        create_multisig(matches);
     }
 
     if let Some(matches) = matches.subcommand_matches("create_transaction") {
-
+        create_transaction(matches);
     }
 
     if let Some(matches) = matches.subcommand_matches("approve") {

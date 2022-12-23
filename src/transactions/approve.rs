@@ -4,7 +4,6 @@ use clap::ArgMatches;
 use anchor_client::solana_sdk::commitment_config::CommitmentConfig;
 use anchor_client::solana_sdk::pubkey::Pubkey;
 use anchor_client::solana_sdk::signature::{read_keypair_file, Signer};
-use anchor_client::solana_sdk::signer::keypair::Keypair;
 use anchor_client::Cluster;
 use anchor_client::Client;
 
@@ -31,6 +30,10 @@ pub fn approve(matches: &ArgMatches) {
     let index = matches.value_of("index").unwrap().parse::<u64>().unwrap();
 
     let (transaction, _) = Pubkey::find_program_address(&[TRANSACTION_SEED_PREFIX, &multisig.to_bytes(), &index.to_le_bytes()], &multisig::id());
+
+    println!("Index: {:?}", index);
+    println!("Transaction: {:?}", transaction);
+    println!("Multisig: {:?}", multisig);
 
     let signature = program
         .request()
