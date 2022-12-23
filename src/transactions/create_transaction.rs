@@ -7,6 +7,11 @@ use anchor_client::solana_sdk::signature::{read_keypair_file, Signer};
 use anchor_client::solana_sdk::system_program;
 use anchor_client::Client;
 use anchor_client::Cluster;
+// use anchor_client::solana_sdk::instruction::{Instruction, AccountMeta};
+use anchor_client::anchor_lang::prelude::{AccountMeta, Instructions};
+use anchor_client::solana_client::rpc_client::RpcClient;
+use anchor_client::solana_sdk::instruction::Instruction;
+use anchor_client::solana_sdk::transaction::Transaction;
 
 use multisig;
 
@@ -16,11 +21,15 @@ use crate::structs::{TxAccountMeta, TxInstruction};
 /// Call CreateTransaction instruction
 pub fn create_transaction(matches: &ArgMatches) {
     // get cluster
-    let cluster = match matches.value_of("env") {
-        Some("dev") => Cluster::Devnet,
-        Some("main") => Cluster::Mainnet,
-        Some("testnet") => Cluster::Testnet,
-        _ => Cluster::Localnet,
+    // let cluster = match matches.value_of("env") {
+    //     Some("dev") => Cluster::Devnet,
+    //     Some("main") => Cluster::Mainnet,
+    //     Some("testnet") => Cluster::Testnet,
+    //     _ => Cluster::Localnet,
+    // };
+    let url = match matches.value_of("env") {
+        Some("dev") => "https://api.devnet.solana.com",
+        _ => "https://api.mainnet-beta.solana.com",
     };
 
     // get signer wallet
@@ -29,13 +38,16 @@ pub fn create_transaction(matches: &ArgMatches) {
     let wallet_pubkey = wallet_keypair.pubkey();
 
     // connect to anchor client
-    let anchor_client = Client::new_with_options(
-        cluster,
-        Rc::new(wallet_keypair),
-        CommitmentConfig::confirmed(),
-    );
+    // let anchor_client = Client::new_with_options(
+    //     cluster,
+    //     Rc::new(wallet_keypair),
+    //     CommitmentConfig::confirmed(),
+    // );
+    let client = RpcClient::new_with_commitment(url.to_string(), CommitmentConfig::confirmed());
+
     // get program public key
-    let program = anchor_client.program(multisig::id());
+    // let program = anchor_client.program(multisig::id());
+    let program_id = multisig::id();
 
     // try to get index, if no - index = 0
     let index = if let Some(index) = matches.value_of("index") {
@@ -76,27 +88,53 @@ pub fn create_transaction(matches: &ArgMatches) {
      */
 
     // call instruction
-    let signature = program
-        .request()
-        .accounts(multisig::accounts::CreateTransaction {
-            multisig: multisig,
-            transaction: transaction,
-            proposer: wallet_pubkey,
-            system_program: system_program::id(),
-        })
-        .args(multisig::instruction::CreateTransaction {
-            instructions: vec![TxInstruction {
+    // let signature = program
+    //     .request()
+    //     .accounts(multisig::accounts::CreateTransaction {
+    //         multisig: multisig,
+    //         transaction: transaction,
+    //         proposer: wallet_pubkey,
+    //         system_program: system_program::id(),
+    //     })
+    //     .args(multisig::instruction::CreateTransaction {
+    //         instructions: vec![Instruction {
+    //             program_id: Default::default(),
+    //             accounts: vec![AccountMeta {
+    //                 pubkey: Default::default(),
+    //                 is_signer: false,
+    //                 is_writable: false,
+    //             }],
+    //             data: vec![],
+    //         }],
+    //     })
+    //     .send()
+    //     .unwrap();
+    //
+    // println!("signature: {:?}", signature);
+
+    let instructions = vec![Instruction::new_with_borsh(
+        program_id,
+        &multisig::instruction::CreateTransaction {
+            instructions: vec![Instruction {
                 program_id: Default::default(),
-                keys: vec![TxAccountMeta {
+                accounts: vec![AccountMeta {
                     pubkey: Default::default(),
                     is_signer: false,
                     is_writable: false,
                 }],
                 data: vec![],
-            }],
-        })
-        .send()
-        .unwrap();
-
-    println!("signature: {:?}", signature);
+            }]
+        },
+        vec![
+            AccountMeta::new(multisig, false),
+            AccountMeta::new(transaction, false),
+            AccountMeta::new(wallet_pubkey, true),
+            AccountMeta::new(system_program::id(), false),
+        ],
+    )];
+    let mut tx = Transaction::new_with_payer(&instructions, Some(&wallet_pubkey));
+    let recent_blockhash = client.get_latest_blockhash().expect("Can't get blockhash");
+    tx.sign(&vec![&wallet_keypair], recent_blockhash);
+    let id = client.send_transaction(&tx).expect("Transaction failed.");
+    println!("tx id: {:?}", id);
 }
