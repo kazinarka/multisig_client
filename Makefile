@@ -17,5 +17,5 @@ pre-commit: build fmt lint test
 deploy:
 	sh deploy.sh
 
-say_hello:
-	cd client; cargo run -- say_hello -e dev -s /path/to/id.json
+approve:
+	cargo run -- approve -e dev -s /Users/illiafedotov/.config/solana/id.json -m 4kMtMnYWFbsMc7M3jcdnfCceHaiXmrqaMz2QZQAmn88i -i 1

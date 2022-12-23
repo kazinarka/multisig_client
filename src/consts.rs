@@ -1,1 +1,1 @@
-pub const PROGRAM_ID: &str = "";
+pub const TRANSACTION_SEED_PREFIX: &[u8] = "transaction".as_bytes();
