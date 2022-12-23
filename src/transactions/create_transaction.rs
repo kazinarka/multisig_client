@@ -115,9 +115,9 @@ pub fn create_transaction(matches: &ArgMatches) {
     let instructions = vec![Instruction::new_with_borsh(
         program_id,
         &multisig::instruction::CreateTransaction {
-            instructions: vec![Instruction {
+            instructions: vec![TxInstruction {
                 program_id: Default::default(),
-                accounts: vec![AccountMeta {
+                keys: vec![TxAccountMeta {
                     pubkey: Default::default(),
                     is_signer: false,
                     is_writable: false,
