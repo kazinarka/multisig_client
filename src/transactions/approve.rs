@@ -1,14 +1,14 @@
-use std::rc::Rc;
 use clap::ArgMatches;
+use std::rc::Rc;
 
 use anchor_client::solana_sdk::commitment_config::CommitmentConfig;
 use anchor_client::solana_sdk::pubkey::Pubkey;
 use anchor_client::solana_sdk::signature::{read_keypair_file, Signer};
-use anchor_client::Cluster;
 use anchor_client::Client;
+use anchor_client::Cluster;
 
-use multisig;
 use crate::consts::TRANSACTION_SEED_PREFIX;
+use multisig;
 
 /// Call Approve instruction
 pub fn approve(matches: &ArgMatches) {
@@ -16,7 +16,7 @@ pub fn approve(matches: &ArgMatches) {
     let cluster = match matches.value_of("env") {
         Some("dev") => Cluster::Devnet,
         Some("main") => Cluster::Mainnet,
-        Some("test") => Cluster::Testnet,
+        Some("testnet") => Cluster::Testnet,
         _ => Cluster::Localnet,
     };
 
@@ -26,18 +26,33 @@ pub fn approve(matches: &ArgMatches) {
     let wallet_pubkey = wallet_keypair.pubkey();
 
     // connect to anchor client
-    let anchor_client = Client::new_with_options(cluster, Rc::new(wallet_keypair), CommitmentConfig::confirmed());
+    let anchor_client = Client::new_with_options(
+        cluster,
+        Rc::new(wallet_keypair),
+        CommitmentConfig::confirmed(),
+    );
     // get program id
     let program = anchor_client.program(multisig::id());
 
     // get multisig public key
-    let multisig= matches.value_of("multisig").unwrap().parse::<Pubkey>().unwrap();
+    let multisig = matches
+        .value_of("multisig")
+        .unwrap()
+        .parse::<Pubkey>()
+        .unwrap();
 
     // get index of transaction
     let index = matches.value_of("index").unwrap().parse::<u64>().unwrap();
 
     // find transaction PDA
-    let (transaction, _) = Pubkey::find_program_address(&[TRANSACTION_SEED_PREFIX, &multisig.to_bytes(), &index.to_le_bytes()], &multisig::id());
+    let (transaction, _) = Pubkey::find_program_address(
+        &[
+            TRANSACTION_SEED_PREFIX,
+            &multisig.to_bytes(),
+            &index.to_le_bytes(),
+        ],
+        &multisig::id(),
+    );
 
     println!("Index: {:?}", index);
     println!("Transaction: {:?}", transaction);
@@ -52,7 +67,8 @@ pub fn approve(matches: &ArgMatches) {
             owner: wallet_pubkey,
         })
         .args(multisig::instruction::Approve {})
-        .send().unwrap();
+        .send()
+        .unwrap();
 
     println!("signature: {:?}", signature);
 }

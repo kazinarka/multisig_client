@@ -1,16 +1,16 @@
-use std::rc::Rc;
 use clap::ArgMatches;
+use std::rc::Rc;
 
 use anchor_client::solana_sdk::commitment_config::CommitmentConfig;
 use anchor_client::solana_sdk::pubkey::Pubkey;
 use anchor_client::solana_sdk::signature::{read_keypair_file, Signer};
 use anchor_client::solana_sdk::signer::keypair::Keypair;
-use anchor_client::Cluster;
-use anchor_client::Client;
 use anchor_client::solana_sdk::system_program;
+use anchor_client::Client;
+use anchor_client::Cluster;
 
-use multisig;
 use crate::consts::MULTISIG_SEED_PREFIX;
+use multisig;
 
 /// Call CreateMultisig instruction
 pub fn create_multisig(matches: &ArgMatches) {
@@ -18,7 +18,7 @@ pub fn create_multisig(matches: &ArgMatches) {
     let cluster = match matches.value_of("env") {
         Some("dev") => Cluster::Devnet,
         Some("main") => Cluster::Mainnet,
-        Some("test") => Cluster::Testnet,
+        Some("testnet") => Cluster::Testnet,
         _ => Cluster::Localnet,
     };
 
@@ -28,7 +28,11 @@ pub fn create_multisig(matches: &ArgMatches) {
     let wallet_pubkey = wallet_keypair.pubkey();
 
     // connect to anchor client
-    let anchor_client = Client::new_with_options(cluster, Rc::new(wallet_keypair), CommitmentConfig::confirmed());
+    let anchor_client = Client::new_with_options(
+        cluster,
+        Rc::new(wallet_keypair),
+        CommitmentConfig::confirmed(),
+    );
     // get program public key
     let program = anchor_client.program(multisig::id());
 
@@ -40,13 +44,20 @@ pub fn create_multisig(matches: &ArgMatches) {
     };
 
     // find multisig PDA
-    let (multisig, _) = Pubkey::find_program_address(&[MULTISIG_SEED_PREFIX, &base.to_bytes()], &multisig::id());
+    let (multisig, _) =
+        Pubkey::find_program_address(&[MULTISIG_SEED_PREFIX, &base.to_bytes()], &multisig::id());
 
     // get threshold
-    let threshold = matches.value_of("threshold").unwrap().parse::<u8>().unwrap();
+    let threshold = matches
+        .value_of("threshold")
+        .unwrap()
+        .parse::<u8>()
+        .unwrap();
 
     // get owners
-    let owners = matches.values_of("owners").unwrap()
+    let owners = matches
+        .values_of("owners")
+        .unwrap()
         .collect::<Vec<&str>>()
         .into_iter()
         .map(|value| value.parse::<Pubkey>().unwrap())
@@ -70,7 +81,8 @@ pub fn create_multisig(matches: &ArgMatches) {
             owners: owners,
             threshold: threshold,
         })
-        .send().unwrap();
+        .send()
+        .unwrap();
 
     println!("signature: {:?}", signature);
 }

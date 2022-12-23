@@ -1,6 +1,6 @@
 mod consts;
-mod transactions;
 mod structs;
+mod transactions;
 
 use clap::{
     app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg, SubCommand,
