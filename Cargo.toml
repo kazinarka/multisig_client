@@ -12,4 +12,4 @@ serde = "1.0"
 borsh = "0.9.0"
 borsh-derive = "0.9.0"
 anchor-client = "0.25.0"
-multisig = { git = "https://github.com/mfactory-lab/multisig.git"}
+multisig = { path = "../multisig/programs/multisig"}

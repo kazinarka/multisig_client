@@ -16,20 +16,15 @@ use anchor_client::solana_sdk::transaction::Transaction;
 use multisig;
 
 use crate::consts::TRANSACTION_SEED_PREFIX;
-use crate::structs::{TxAccountMeta, TxInstruction};
+use multisig::state::{TxAccountMeta, TxInstruction};
 
 /// Call CreateTransaction instruction
 pub fn create_transaction(matches: &ArgMatches) {
-    // get cluster
-    // let cluster = match matches.value_of("env") {
-    //     Some("dev") => Cluster::Devnet,
-    //     Some("main") => Cluster::Mainnet,
-    //     Some("testnet") => Cluster::Testnet,
-    //     _ => Cluster::Localnet,
-    // };
     let url = match matches.value_of("env") {
+        Some("main") => "https://api.mainnet-beta.solana.com",
+        Some("testnet") => "https://api.testnet.solana.com",
         Some("dev") => "https://api.devnet.solana.com",
-        _ => "https://api.mainnet-beta.solana.com",
+        _ => "http://127.0.0.1:8899",
     };
 
     // get signer wallet
@@ -37,16 +32,10 @@ pub fn create_transaction(matches: &ArgMatches) {
     let wallet_keypair = read_keypair_file(wallet_path).expect("Can't open file-wallet");
     let wallet_pubkey = wallet_keypair.pubkey();
 
-    // connect to anchor client
-    // let anchor_client = Client::new_with_options(
-    //     cluster,
-    //     Rc::new(wallet_keypair),
-    //     CommitmentConfig::confirmed(),
-    // );
+    // connect to client
     let client = RpcClient::new_with_commitment(url.to_string(), CommitmentConfig::confirmed());
 
     // get program public key
-    // let program = anchor_client.program(multisig::id());
     let program_id = multisig::id();
 
     // try to get index, if no - index = 0
@@ -76,54 +65,30 @@ pub fn create_transaction(matches: &ArgMatches) {
     println!("Multisig: {:?}", multisig);
     println!("Transaction: {:?}", transaction);
 
-    /*
-    In this case i can not use TxInstruction and TxAccountMeta structs from multisig::state - because this folder is private.
-    I tried to use different approaches with solana_sdk structs like Instruction and AccountMeta, but it didn't work.
-
-    Also as I can see in TS cli app - you used a TransactionInstruction struct from web3 library.
-    I didn't find any working analogues in Rust libraries.
-
-    So, as for now - we have a compilation error while calling CreateTransaction instruction.
-    The only way that i see now is somehow make this structs public.
-     */
-
-    // call instruction
-    // let signature = program
-    //     .request()
-    //     .accounts(multisig::accounts::CreateTransaction {
-    //         multisig: multisig,
-    //         transaction: transaction,
-    //         proposer: wallet_pubkey,
-    //         system_program: system_program::id(),
-    //     })
-    //     .args(multisig::instruction::CreateTransaction {
-    //         instructions: vec![Instruction {
-    //             program_id: Default::default(),
-    //             accounts: vec![AccountMeta {
-    //                 pubkey: Default::default(),
-    //                 is_signer: false,
-    //                 is_writable: false,
-    //             }],
-    //             data: vec![],
-    //         }],
-    //     })
-    //     .send()
-    //     .unwrap();
-    //
-    // println!("signature: {:?}", signature);
-
     let instructions = vec![Instruction::new_with_borsh(
         program_id,
         &multisig::instruction::CreateTransaction {
             instructions: vec![TxInstruction {
-                program_id: Default::default(),
-                keys: vec![TxAccountMeta {
-                    pubkey: Default::default(),
-                    is_signer: false,
-                    is_writable: false,
-                }],
+                program_id: Pubkey::new_unique(),
+                keys: vec![
+                    TxAccountMeta {
+                        pubkey: Pubkey::new_unique(),
+                        is_signer: true,
+                        is_writable: false,
+                    },
+                    TxAccountMeta {
+                        pubkey: Pubkey::new_unique(),
+                        is_signer: false,
+                        is_writable: false,
+                    },
+                    TxAccountMeta {
+                        pubkey: Pubkey::new_unique(),
+                        is_signer: false,
+                        is_writable: false,
+                    },
+                ],
                 data: vec![],
-            }]
+            }],
         },
         vec![
             AccountMeta::new(multisig, false),
