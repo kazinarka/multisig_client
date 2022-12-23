@@ -7,11 +7,14 @@ use anchor_client::solana_sdk::signature::{read_keypair_file, Signer};
 use anchor_client::solana_sdk::signer::keypair::Keypair;
 use anchor_client::Cluster;
 use anchor_client::Client;
+use anchor_client::solana_sdk::system_program;
 
 use multisig;
 use crate::consts::MULTISIG_SEED_PREFIX;
 
+/// Call CreateMultisig instruction
 pub fn create_multisig(matches: &ArgMatches) {
+    // get cluster
     let cluster = match matches.value_of("env") {
         Some("dev") => Cluster::Devnet,
         Some("main") => Cluster::Mainnet,
@@ -19,23 +22,30 @@ pub fn create_multisig(matches: &ArgMatches) {
         _ => Cluster::Localnet,
     };
 
+    // get signer wallet
     let wallet_path = matches.value_of("sign").unwrap();
     let wallet_keypair = read_keypair_file(wallet_path).expect("Can't open file-wallet");
     let wallet_pubkey = wallet_keypair.pubkey();
 
+    // connect to anchor client
     let anchor_client = Client::new_with_options(cluster, Rc::new(wallet_keypair), CommitmentConfig::confirmed());
+    // get program public key
     let program = anchor_client.program(multisig::id());
 
+    // try to get base key from command line, if no key - generate new one
     let base = if let Some(base) = matches.value_of("base") {
         base.parse::<Pubkey>().unwrap()
     } else {
         Keypair::new().pubkey()
     };
 
-    let (multisig, _)= Pubkey::find_program_address(&[MULTISIG_SEED_PREFIX, &base.to_bytes()], &multisig::id());
+    // find multisig PDA
+    let (multisig, _) = Pubkey::find_program_address(&[MULTISIG_SEED_PREFIX, &base.to_bytes()], &multisig::id());
 
+    // get threshold
     let threshold = matches.value_of("threshold").unwrap().parse::<u8>().unwrap();
 
+    // get owners
     let owners = matches.values_of("owners").unwrap()
         .collect::<Vec<&str>>()
         .into_iter()
@@ -47,12 +57,13 @@ pub fn create_multisig(matches: &ArgMatches) {
     println!("Base: {:?}", base);
     println!("Multisig: {:?}", multisig);
 
+    // call instruction
     let signature = program
         .request()
         .accounts(multisig::accounts::CreateMultisig {
             multisig: multisig,
             payer: wallet_pubkey,
-            system_program: anchor_client::solana_sdk::system_program::id(),
+            system_program: system_program::id(),
         })
         .args(multisig::instruction::CreateMultisig {
             base: base.to_bytes(),

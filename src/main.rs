@@ -1,6 +1,6 @@
 mod consts;
-mod structs;
 mod transactions;
+mod structs;
 
 use clap::{
     app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg, SubCommand,
@@ -11,6 +11,7 @@ use crate::transactions::create_multisig::create_multisig;
 use crate::transactions::create_transaction::create_transaction;
 
 fn main() {
+    // match command from command line
     let matches = app_from_crate!()
         .subcommand(
             SubCommand::with_name("create_multisig")
@@ -122,14 +123,17 @@ fn main() {
         )
         .get_matches();
 
+    // call create_multisig method if matched
     if let Some(matches) = matches.subcommand_matches("create_multisig") {
         create_multisig(matches);
     }
 
+    // call create_transaction method if matched
     if let Some(matches) = matches.subcommand_matches("create_transaction") {
         create_transaction(matches);
     }
 
+    // call approve method if matched
     if let Some(matches) = matches.subcommand_matches("approve") {
         approve(matches);
     }

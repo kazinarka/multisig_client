@@ -1,5 +1,6 @@
 use anchor_client::anchor_lang::prelude::{Pubkey, AnchorSerialize, AnchorDeserialize};
 
+/// Structs for parsing input data file to create_transaction execution
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct TxInstruction {
     /// Target program to execute this instruction
