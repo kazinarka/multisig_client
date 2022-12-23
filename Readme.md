@@ -22,15 +22,15 @@ But you need to change some fields in commands.
 
 ### Approve
 
-> cargo run -- approve -e <cluster> -s <key path> -m <multisig> -i <index>
+> cargo run -- approve -e [cluster] -s [key path] -m [multisig] -i [index]
 
 ### Create Multisig
 
-> cargo run -- create_multisig -e <cluster> -s <key path> -o <list of owners> -t <threshold> -b <base>
+> cargo run -- create_multisig -e [cluster] -s [key path] -o [list of owners] -t [threshold] -b [base]
 
 ### Create Transaction (not completed yet)
 
-> cargo run -- create_transaction -e <cluster> -s <key path> -m <multisig> -i <index> -p <path>
+> cargo run -- create_transaction -e [cluster] -s [key path] -m [multisig] -i [index] -p [path]
 
 # Useful notes
 
